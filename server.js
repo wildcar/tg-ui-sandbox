@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.post("/send-preview", async (req, res) => {
   try {
-    const { text, parseMode, disableWebPagePreview } = req.body;
+    const { text, parseMode, disableWebPagePreview, replyMarkup } = req.body;
 
     if (!text || !text.trim()) {
       return res.status(400).json({ error: "Text is empty" });
@@ -33,6 +33,20 @@ app.post("/send-preview", async (req, res) => {
 
     if (parseMode && parseMode !== "none") {
       payload.parse_mode = parseMode;
+    }
+
+    if (replyMarkup) {
+      let parsed;
+      if (typeof replyMarkup === "string") {
+        try {
+          parsed = JSON.parse(replyMarkup);
+        } catch {
+          return res.status(400).json({ error: "reply_markup is not valid JSON" });
+        }
+      } else {
+        parsed = replyMarkup;
+      }
+      payload.reply_markup = parsed;
     }
 
     const response = await fetch(

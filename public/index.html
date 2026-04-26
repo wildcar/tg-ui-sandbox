@@ -89,12 +89,18 @@
       </label>
       <button id="sendBtn">Send preview</button>
     </div>
+    <details style="margin-top: 12px;">
+      <summary style="cursor: pointer; font-size: 14px; color: #555;">reply_markup (JSON)</summary>
+      <textarea id="replyMarkup" style="min-height: 160px; margin-top: 8px;" placeholder='{"inline_keyboard": [[{"text": "Кнопка", "callback_data": "test"}]]}'></textarea>
+    </details>
+
     <div class="status" id="status"></div>
   </div>
   <script>
     const textEl = document.getElementById("text");
     const parseModeEl = document.getElementById("parseMode");
     const disableWebPagePreviewEl = document.getElementById("disableWebPagePreview");
+    const replyMarkupEl = document.getElementById("replyMarkup");
     const sendBtn = document.getElementById("sendBtn");
     const statusEl = document.getElementById("status");
 
@@ -103,14 +109,21 @@
       statusEl.textContent = "Sending...";
 
       try {
+        const body = {
+          text: textEl.value,
+          parseMode: parseModeEl.value,
+          disableWebPagePreview: disableWebPagePreviewEl.checked,
+        };
+
+        const rawMarkup = replyMarkupEl.value.trim();
+        if (rawMarkup) {
+          body.replyMarkup = replyMarkupEl.value;
+        }
+
         const response = await fetch("/send-preview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: textEl.value,
-            parseMode: parseModeEl.value,
-            disableWebPagePreview: disableWebPagePreviewEl.checked,
-          }),
+          body: JSON.stringify(body),
         });
 
         const data = await response.json();
