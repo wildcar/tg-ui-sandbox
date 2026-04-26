@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Telegram Bot Preview</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 860px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    select, button, label {
+      font-size: 15px;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      background: #2481cc;
+      color: white;
+      font-weight: 600;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 14px;
+    }
+    .hint {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Telegram Bot Preview</h1>
+    <p class="hint">
+      Вставь текст сообщения, выбери parse_mode и отправь себе в dev-чат через тестового бота.
+    </p>
+    <textarea id="text"><b>Привет!</b>
+
+Это тестовое сообщение.
+
+<a href="https://example.com">Ссылка</a></textarea>
+    <div class="row">
+      <label>
+        parse_mode:
+        <select id="parseMode">
+          <option value="HTML">HTML</option>
+          <option value="MarkdownV2">MarkdownV2</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+      <label>
+        <input type="checkbox" id="disableWebPagePreview" checked />
+        disable web preview
+      </label>
+      <button id="sendBtn">Send preview</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+  <script>
+    const textEl = document.getElementById("text");
+    const parseModeEl = document.getElementById("parseMode");
+    const disableWebPagePreviewEl = document.getElementById("disableWebPagePreview");
+    const sendBtn = document.getElementById("sendBtn");
+    const statusEl = document.getElementById("status");
+
+    sendBtn.addEventListener("click", async () => {
+      sendBtn.disabled = true;
+      statusEl.textContent = "Sending...";
+
+      try {
+        const response = await fetch("/send-preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: textEl.value,
+            parseMode: parseModeEl.value,
+            disableWebPagePreview: disableWebPagePreviewEl.checked,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          statusEl.textContent = "Error:\n" + JSON.stringify(data, null, 2);
+          return;
+        }
+
+        statusEl.textContent = "Sent successfully.\nMessage ID: " + data.messageId;
+      } catch (error) {
+        statusEl.textContent = "Error:\n" + error.message;
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
