@@ -89,20 +89,50 @@
       </label>
       <button id="sendBtn">Send preview</button>
     </div>
-    <details style="margin-top: 12px;">
-      <summary style="cursor: pointer; font-size: 14px; color: #555;">reply_markup (JSON)</summary>
-      <textarea id="replyMarkup" style="min-height: 160px; margin-top: 8px;" placeholder='{"inline_keyboard": [[{"text": "Кнопка", "callback_data": "test"}]]}'></textarea>
-    </details>
+    <div style="margin-top: 12px;">
+      <label style="font-size: 13px; color: #555;">reply_markup (JSON)</label>
+      <textarea id="replyMarkup" style="min-height: 160px; margin-top: 4px;" placeholder='{"inline_keyboard": [[{"text": "Кнопка", "callback_data": "test"}]]}'></textarea>
+    </div>
 
     <div class="status" id="status"></div>
   </div>
   <script>
+    const STORAGE_KEY = "tg-sandbox";
+
     const textEl = document.getElementById("text");
     const parseModeEl = document.getElementById("parseMode");
     const disableWebPagePreviewEl = document.getElementById("disableWebPagePreview");
     const replyMarkupEl = document.getElementById("replyMarkup");
     const sendBtn = document.getElementById("sendBtn");
     const statusEl = document.getElementById("status");
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        text: textEl.value,
+        parseMode: parseModeEl.value,
+        disableWebPagePreview: disableWebPagePreviewEl.checked,
+        replyMarkup: replyMarkupEl.value,
+      }));
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved) {
+          if (saved.text !== undefined) textEl.value = saved.text;
+          if (saved.parseMode !== undefined) parseModeEl.value = saved.parseMode;
+          if (saved.disableWebPagePreview !== undefined) disableWebPagePreviewEl.checked = saved.disableWebPagePreview;
+          if (saved.replyMarkup !== undefined) replyMarkupEl.value = saved.replyMarkup;
+        }
+      } catch {}
+    }
+
+    loadState();
+
+    textEl.addEventListener("input", saveState);
+    parseModeEl.addEventListener("change", saveState);
+    disableWebPagePreviewEl.addEventListener("change", saveState);
+    replyMarkupEl.addEventListener("input", saveState);
 
     sendBtn.addEventListener("click", async () => {
       sendBtn.disabled = true;
@@ -133,6 +163,7 @@
           return;
         }
 
+        saveState();
         statusEl.textContent = "Sent successfully.\nMessage ID: " + data.messageId;
       } catch (error) {
         statusEl.textContent = "Error:\n" + error.message;
